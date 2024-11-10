@@ -1,10 +1,10 @@
-import type { Vault, Stat, ListedFiles } from "obsidian";
-import type { Entity, MixedEntity } from "./baseTypes";
+import type { ListedFiles, Vault } from "obsidian";
+import type { Entity } from "./baseTypes";
 
 import { Queue } from "@fyears/tsqueue";
 import chunk from "lodash/chunk";
 import flatten from "lodash/flatten";
-import { statFix, isSpecialFolderNameToSkip } from "./misc";
+import { isSpecialFolderNameToSkip, statFix } from "./misc";
 
 const isPluginDirItself = (x: string, pluginId: string) => {
   return (
@@ -34,11 +34,15 @@ const isLikelyPluginSubFiles = (x: string) => {
 export const listFilesInObsFolder = async (
   configDir: string,
   vault: Vault,
-  pluginId: string
+  pluginId: string,
+  bookmarksOnly: boolean
 ): Promise<Entity[]> => {
   const q = new Queue([configDir]);
   const CHUNK_SIZE = 10;
-  const contents: Entity[] = [];
+  let contents: Entity[] = [];
+
+  let iterRound = 0;
+
   while (q.length > 0) {
     const itemsToFetch: string[] = [];
     while (q.length > 0) {
@@ -115,6 +119,23 @@ export const listFilesInObsFolder = async (
         }
       }
     }
+
+    if (bookmarksOnly && iterRound > 1) {
+      // list until bookmarks.json is found or next level is arrived.
+      break;
+    }
+
+    iterRound += 1;
   }
+
+  // console.debug(`contents in obs config: ${JSON.stringify(contents)}`);
+
+  if (bookmarksOnly) {
+    contents = contents.filter(
+      (e) =>
+        e.key === `${configDir}/` || e.key === `${configDir}/bookmarks.json`
+    );
+  }
+
   return contents;
 };

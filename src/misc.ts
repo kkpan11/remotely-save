@@ -1,9 +1,9 @@
-import { Platform, Vault } from "obsidian";
 import * as path from "path";
+import type { Vault } from "obsidian";
 
-import { base32, base64url } from "rfc4648";
-import XRegExp from "xregexp";
 import emojiRegex from "emoji-regex";
+import { base32 } from "rfc4648";
+import XRegExp from "xregexp";
 
 declare global {
   interface Window {
@@ -18,11 +18,7 @@ declare global {
  * @param underscore
  * @returns
  */
-export const isHiddenPath = (
-  item: string,
-  dot: boolean = true,
-  underscore: boolean = true
-) => {
+export const isHiddenPath = (item: string, dot = true, underscore = true) => {
   if (!(dot || underscore)) {
     throw Error("parameter error for isHiddenPath");
   }
@@ -50,7 +46,7 @@ export const isHiddenPath = (
  * @param x string
  * @returns string[] might be empty
  */
-export const getFolderLevels = (x: string, addEndingSlash: boolean = false) => {
+export const getFolderLevels = (x: string, addEndingSlash = false) => {
   const res: string[] = [];
 
   if (x === "" || x === "/") {
@@ -58,7 +54,7 @@ export const getFolderLevels = (x: string, addEndingSlash: boolean = false) => {
   }
 
   const y1 = x.split("/");
-  let i = 0;
+  const i = 0;
   for (let index = 0; index + 1 < y1.length; index++) {
     let k = y1.slice(0, index + 1).join("/");
     if (k === "" || k === "/") {
@@ -119,7 +115,7 @@ export const base64ToArrayBuffer = (b64text: string) => {
 };
 
 export const copyArrayBuffer = (src: ArrayBuffer) => {
-  var dst = new ArrayBuffer(src.byteLength);
+  const dst = new ArrayBuffer(src.byteLength);
   new Uint8Array(dst).set(new Uint8Array(src));
   return dst;
 };
@@ -134,18 +130,14 @@ export const hexStringToTypedArray = (hex: string) => {
   if (f === null) {
     throw Error(`input ${hex} is not hex, no way to transform`);
   }
-  return new Uint8Array(
-    f.map(function (h) {
-      return parseInt(h, 16);
-    })
-  );
+  return new Uint8Array(f.map((h) => Number.parseInt(h, 16)));
 };
 
 export const base64ToBase32 = (a: string) => {
   return base32.stringify(Buffer.from(a, "base64"));
 };
 
-export const base64ToBase64url = (a: string, pad: boolean = false) => {
+export const base64ToBase64url = (a: string, pad = false) => {
   let b = a.replace(/\+/g, "-").replace(/\//g, "_");
   if (!pad) {
     b = b.replace(/=/g, "");
@@ -190,7 +182,7 @@ export const hasEmojiInText = (a: string) => {
  * @param toLower
  * @returns
  */
-export const headersToRecord = (h: Headers, toLower: boolean = true) => {
+export const headersToRecord = (h: Headers, toLower = true) => {
   const res: Record<string, string> = {};
   h.forEach((v, k) => {
     if (toLower) {
@@ -240,11 +232,11 @@ export const getParentFolder = (a: string) => {
  * @param delimiter
  * @returns
  */
-export const setToString = (a: Set<string>, delimiter: string = ",") => {
+export const setToString = (a: Set<string>, delimiter = ",") => {
   return [...a].join(delimiter);
 };
 
-export const extractSvgSub = (x: string, subEl: string = "rect") => {
+export const extractSvgSub = (x: string, subEl = "rect") => {
   const parser = new window.DOMParser();
   const dom = parser.parseFromString(x, "image/svg+xml");
   const svg = dom.querySelector("svg")!;
@@ -261,10 +253,10 @@ export const extractSvgSub = (x: string, subEl: string = "rect") => {
 export const getRandomIntInclusive = (min: number, max: number) => {
   const randomBuffer = new Uint32Array(1);
   window.crypto.getRandomValues(randomBuffer);
-  let randomNumber = randomBuffer[0] / (0xffffffff + 1);
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(randomNumber * (max - min + 1)) + min;
+  const randomNumber = randomBuffer[0] / (0xffffffff + 1);
+  const min2 = Math.ceil(min);
+  const max2 = Math.floor(max);
+  return Math.floor(randomNumber * (max2 - min2 + 1)) + min2;
 };
 
 /**
@@ -287,7 +279,7 @@ export const reverseString = (x: string) => {
 };
 
 export interface SplitRange {
-  partNum: number; // startting from 1
+  partNum: number; // starting from 1
   start: number;
   end: number; // exclusive
 }
@@ -324,7 +316,7 @@ export const getTypeName = (obj: any) => {
 };
 
 /**
- * Startting from 1
+ * starting from 1
  * @param x
  * @returns
  */
@@ -349,11 +341,17 @@ export const checkHasSpecialCharForDir = (x: string) => {
   return /[?/\\]/.test(x);
 };
 
-export const unixTimeToStr = (x: number | undefined | null) => {
+export const unixTimeToStr = (x: number | undefined | null, hasMs = false) => {
   if (x === undefined || x === null || Number.isNaN(x)) {
     return undefined;
   }
-  return window.moment(x).format() as string;
+  if (hasMs) {
+    // 1716712162574 => '2024-05-26T16:29:22.574+08:00'
+    return window.moment(x).toISOString(true);
+  } else {
+    // 1716712162574 => '2024-05-26T16:29:22+08:00'
+    return window.moment(x).format() as string;
+  }
 };
 
 /**
@@ -397,9 +395,8 @@ export const toText = (x: any) => {
 
   if (
     x instanceof Error ||
-    (x &&
-      x.stack &&
-      x.message &&
+    (x?.stack &&
+      x?.message &&
       typeof x.stack === "string" &&
       typeof x.message === "string")
   ) {
@@ -425,7 +422,7 @@ export const toText = (x: any) => {
 export const statFix = async (vault: Vault, path: string) => {
   const s = await vault.adapter.stat(path);
   if (s === undefined || s === null) {
-    return s;
+    throw Error(`${path} doesn't exist cannot run stat`);
   }
   if (s.ctime === undefined || s.ctime === null || Number.isNaN(s.ctime)) {
     s.ctime = undefined as any; // force assignment
@@ -446,7 +443,7 @@ export const isSpecialFolderNameToSkip = (
   x: string,
   more: string[] | undefined
 ) => {
-  let specialFolders = [
+  const specialFolders = [
     ".git",
     ".github",
     ".gitlab",
@@ -470,6 +467,21 @@ export const isSpecialFolderNameToSkip = (
       return true;
     }
   }
+
+  // microsoft tmp files...
+  const p = x.split("/");
+  if (p.length > 0) {
+    const f = p[p.length - 1]; // file name
+    if (f.startsWith("~$")) {
+      const suffixList = ["doc", "docx", "ppt", "pptx", "xls", "xlsx"];
+      for (const suffix of suffixList) {
+        if (f.endsWith(`.${suffix}`)) {
+          return true;
+        }
+      }
+    }
+  }
+
   return false;
 };
 
@@ -595,6 +607,7 @@ export const changeMobileStatusBar = (
     if (oldAppContainerObserver !== undefined) {
       console.debug(`disconnect oldAppContainerObserver`);
       oldAppContainerObserver.disconnect();
+      // biome-ignore lint/style/noParameterAssign: we want gc
       oldAppContainerObserver = undefined;
     }
     statusbar.style.removeProperty("display");
@@ -631,7 +644,6 @@ export const fixEntityListCasesInplace = (entities: { keyRaw: string }[]) => {
         caseMapping[newKeyRaw.toLocaleLowerCase()] = newKeyRaw;
         e.keyRaw = newKeyRaw;
         // console.log(JSON.stringify(caseMapping,null,2));
-        continue;
       } else {
         throw Error(`${parentFolder} doesn't have cases record??`);
       }
@@ -642,7 +654,6 @@ export const fixEntityListCasesInplace = (entities: { keyRaw: string }[]) => {
           .slice(-1)
           .join("/")}`;
         e.keyRaw = newKeyRaw;
-        continue;
       } else {
         throw Error(`${parentFolder} doesn't have cases record??`);
       }
@@ -650,4 +661,191 @@ export const fixEntityListCasesInplace = (entities: { keyRaw: string }[]) => {
   }
 
   return entities;
+};
+
+/**
+ * https://stackoverflow.com/questions/1248302/how-to-get-the-size-of-a-javascript-object
+ * @param object
+ * @returns bytes
+ */
+export const roughSizeOfObject = (object: any) => {
+  const objectList: any[] = [];
+  const stack = [object];
+  let bytes = 0;
+
+  while (stack.length) {
+    const value = stack.pop();
+
+    switch (typeof value) {
+      case "boolean":
+        bytes += 4;
+        break;
+      case "string":
+        bytes += value.length * 2;
+        break;
+      case "number":
+        bytes += 8;
+        break;
+      case "object":
+        if (!objectList.includes(value)) {
+          objectList.push(value);
+          for (const prop in value) {
+            if (value.hasOwnProperty(prop)) {
+              stack.push(value[prop]);
+            }
+          }
+        }
+        break;
+    }
+  }
+  return bytes;
+};
+
+export const splitFileSizeToChunkRanges = (
+  totalSize: number,
+  chunkSize: number
+) => {
+  if (totalSize < 0) {
+    throw Error(`totalSize should not be negative`);
+  }
+  if (chunkSize <= 0) {
+    throw Error(`chunkSize should not be negative or zero`);
+  }
+
+  if (totalSize === 0) {
+    return [];
+  }
+  if (totalSize <= chunkSize) {
+    return [{ start: 0, end: totalSize - 1 }];
+  }
+
+  const res: { start: number; end: number }[] = [];
+
+  const blocksCount = Math.ceil((totalSize * 1.0) / chunkSize);
+
+  for (let i = 0; i < blocksCount; ++i) {
+    res.push({
+      start: i * chunkSize,
+      end: Math.min((i + 1) * chunkSize - 1, totalSize - 1),
+    });
+  }
+  return res;
+};
+
+export const getSha1 = async (x: ArrayBuffer, stringify: "base64" | "hex") => {
+  const y = await window.crypto.subtle.digest("SHA-1", x);
+
+  if (stringify === "base64") {
+    return arrayBufferToBase64(y);
+  } else if (stringify === "hex") {
+    return arrayBufferToHex(y);
+  }
+  throw Error(`not supported stringify option = ${stringify}`);
+};
+
+/**
+ * https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
+ * https://support.microsoft.com/en-us/office/restrictions-and-limitations-in-onedrive-and-sharepoint-64883a5d-228e-48f5-b3d2-eb39e07630fa#invalidcharacters
+ */
+export const checkValidName = (x: string) => {
+  if (x === undefined || x === "") {
+    // what??
+    return {
+      reason: "empty",
+      result: false,
+    };
+  }
+
+  // The following reserved characters:
+  const invalidChars = '*"<>:|?'.split("");
+  for (const c of invalidChars) {
+    if (x.includes(c)) {
+      return {
+        reason: `reserved character: ${c}`,
+        result: false,
+      };
+    }
+  }
+
+  // directory component
+  for (const c of [".", ".."]) {
+    if (
+      x === c ||
+      x.endsWith(`/${c}`) ||
+      x.startsWith(`${c}/`) ||
+      x.includes(`/${c}/`)
+    ) {
+      return {
+        reason: `directory being ${c}`,
+        result: false,
+      };
+    }
+  }
+
+  // reserved file names
+  const reservedNames = [
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM0",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "COM¹",
+    "COM²",
+    "COM³",
+    "LPT0",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
+    "LPT¹",
+    "LPT²",
+    "LPT³",
+  ];
+  for (const f of reservedNames) {
+    if (
+      x === f ||
+      x.startsWith(`${f}.`) ||
+      x.startsWith(`${f}/`) ||
+      x.includes(`/${f}/`) ||
+      x.endsWith(`/${f}`) ||
+      x.includes(`/${f}.`)
+    ) {
+      return {
+        reason: `reserved folder/file name: ${f}`,
+        result: false,
+      };
+    }
+  }
+
+  // Do not end a file or directory name with a space or a period.
+  if (
+    x.endsWith(" ") ||
+    x.endsWith(".") ||
+    x.includes(" /") ||
+    x.includes("./")
+  ) {
+    return {
+      reason: `folder/file name ending with a space or a period`,
+      result: false,
+    };
+  }
+
+  return {
+    reason: "ok",
+    result: true,
+  };
 };

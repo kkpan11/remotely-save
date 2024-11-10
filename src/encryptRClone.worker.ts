@@ -1,5 +1,5 @@
-import { nanoid } from "nanoid";
 import { Cipher as CipherRCloneCryptPack } from "@fyears/rclone-crypt";
+import { nanoid } from "nanoid";
 
 const ctx: WorkerGlobalScope = self as any;
 
@@ -141,7 +141,7 @@ ctx.addEventListener("message", async (event: any) => {
           status: "ok",
           outputContent: outputContent,
         },
-        [outputContent]
+        [outputContent] // on worker side, we don't reuse anything so it's safe to transfer
       );
     } catch (error) {
       console.error(error);
@@ -166,7 +166,7 @@ ctx.addEventListener("message", async (event: any) => {
           status: "ok",
           outputContent: outputContent,
         },
-        [outputContent]
+        [outputContent] // on worker side, we don't reuse anything so it's safe to transfer
       );
     } catch (error) {
       console.error(error);
